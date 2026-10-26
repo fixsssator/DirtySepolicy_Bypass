@@ -40,7 +40,18 @@ jobs:
             NDK_OUT=/tmp/ndk-out \
             NDK_LIBS_OUT=/tmp/ndk-libs
           install -m 0644 /tmp/ndk-libs/arm64-v8a/libdirtysepbypass.so module/zygisk/arm64-v8a.so
-          zip -r9 dirtysepbypass-bakasu-zygisk-next.zip module/module.prop module/customize.sh module/META-INF module/zygisk
+          rm -f dirtysepbypass-bakasu-zygisk-next.zip
+          (
+            cd module
+            zip -r9 ../dirtysepbypass-bakasu-zygisk-next.zip module.prop customize.sh META-INF zygisk
+          )
+          unzip -Z1 dirtysepbypass-bakasu-zygisk-next.zip | grep -Fxq 'module.prop'
+          unzip -Z1 dirtysepbypass-bakasu-zygisk-next.zip | grep -Fxq 'customize.sh'
+          unzip -Z1 dirtysepbypass-bakasu-zygisk-next.zip | grep -Fxq 'zygisk/arm64-v8a.so'
+          if unzip -Z1 dirtysepbypass-bakasu-zygisk-next.zip | grep -q '^module/'; then
+            echo "ERROR: ZIP entries must not be nested under module/"
+            exit 1
+          fi
 
       - name: Publish direct ZIP download
         if: github.event_name == 'push' && github.ref == 'refs/heads/bakasu-zygisk-next'
