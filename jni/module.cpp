@@ -681,7 +681,7 @@ private:
         detect_kernel_version();
         resolve_hidden_bits();
 
-        uint32_t flags = api->getFlags();
+        [[maybe_unused]] uint32_t flags = api->getFlags();
         LOGD("[%s] state flags=0x%x (granted_root=%d on_denylist=%d)",
              who, flags,
              (flags & zygisk::PROCESS_GRANTED_ROOT) != 0,
