@@ -26,12 +26,11 @@ jobs:
         run: sdkmanager "ndk;27.2.12479018"
 
       - name: Build arm64 module
-        env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.2.12479018
         run: |
           set -eux
+          NDK="$ANDROID_SDK_ROOT/ndk/27.2.12479018"
           mkdir -p module/zygisk
-          "$ANDROID_NDK_HOME/ndk-build" \
+          "$NDK/ndk-build" \
             NDK_PROJECT_PATH=. \
             APP_BUILD_SCRIPT=jni/Android.mk \
             NDK_APPLICATION_MK=jni/Application.mk \
