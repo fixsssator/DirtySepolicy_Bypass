@@ -656,11 +656,21 @@ public:
     }
 
     void preAppSpecialize(zygisk::AppSpecializeArgs *) override {
-        install("app");
+        install("app/pre");
+    }
+
+    void postAppSpecialize(const zygisk::AppSpecializeArgs *) override {
+        // Second pass after specialization to catch libraries not mapped yet
+        // during preAppSpecialize.
+        install("app/post");
     }
 
     void preServerSpecialize(zygisk::ServerSpecializeArgs *) override {
-        install("server");
+        install("server/pre");
+    }
+
+    void postServerSpecialize(const zygisk::ServerSpecializeArgs *) override {
+        install("server/post");
     }
 
 private:
@@ -670,6 +680,13 @@ private:
     void install(const char *who) {
         detect_kernel_version();
         resolve_hidden_bits();
+
+        uint32_t flags = api->getFlags();
+        LOGD("[%s] state flags=0x%x (granted_root=%d on_denylist=%d)",
+             who, flags,
+             (flags & zygisk::PROCESS_GRANTED_ROOT) != 0,
+             (flags & zygisk::PROCESS_ON_DENYLIST) != 0);
+
         int n = register_against_all_libs(api);
         if (n == 0) {
             LOGW("[%s] no .so libs found to hook", who);
