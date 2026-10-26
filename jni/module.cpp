@@ -656,11 +656,27 @@ public:
     }
 
     void preAppSpecialize(zygisk::AppSpecializeArgs *) override {
-        install("app");
+        install("app/pre");
+    }
+
+    void postAppSpecialize(const zygisk::AppSpecializeArgs *) override {
+        // Second pass. On some Zygisk API implementations (e.g. Zygisk Next /
+        // KernelSU-family companion processes) not every library that will be
+        // used by the app is necessarily mapped into /proc/self/maps yet at
+        // preAppSpecialize time, or the first pltHookCommit() races with the
+        // backend still finishing its own injection bookkeeping. Re-scanning
+        // and re-committing after specialization catches anything missed by
+        // the first pass. pltHookRegister()/pltHookCommit() are idempotent to
+        // call again for the same (dev, inode, symbol) tuple.
+        install("app/post");
     }
 
     void preServerSpecialize(zygisk::ServerSpecializeArgs *) override {
-        install("server");
+        install("server/pre");
+    }
+
+    void postServerSpecialize(const zygisk::ServerSpecializeArgs *) override {
+        install("server/post");
     }
 
 private:
@@ -670,6 +686,13 @@ private:
     void install(const char *who) {
         detect_kernel_version();
         resolve_hidden_bits();
+
+        uint32_t flags = api->getFlags();
+        LOGD("[%s] state flags=0x%x (granted_root=%d on_denylist=%d)",
+             who, flags,
+             (flags & zygisk::PROCESS_GRANTED_ROOT) != 0,
+             (flags & zygisk::PROCESS_ON_DENYLIST) != 0);
+
         int n = register_against_all_libs(api);
         if (n == 0) {
             LOGW("[%s] no .so libs found to hook", who);
