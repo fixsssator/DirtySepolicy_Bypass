@@ -497,7 +497,7 @@ static ssize_t (*orig_read)(int, void *, size_t) = nullptr;
 static ssize_t (*orig_pread64)(int, void *, size_t, off64_t) = nullptr;
 static int     (*orig_close)(int) = nullptr;
 
-static const char *fdtype_str(FdType t) {
+static __attribute__((unused)) const char *fdtype_str(FdType t) {
     switch (t) {
         case FD_CONTEXT: return "context";
         case FD_ACCESS:  return "access";
