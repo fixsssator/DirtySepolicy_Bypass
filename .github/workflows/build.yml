@@ -15,15 +15,16 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Android NDK
-        uses: android-actions/setup-android@v3
-
       - name: Install NDK
-        run: sdkmanager "ndk;27.2.12479018"
+        run: |
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
 
       - name: Build arm64 module
         run: |
