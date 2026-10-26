@@ -42,13 +42,6 @@ jobs:
           install -m 0644 /tmp/ndk-libs/arm64-v8a/libdirtysepbypass.so module/zygisk/arm64-v8a.so
           zip -r9 dirtysepbypass-bakasu-zygisk-next.zip module/module.prop module/customize.sh module/META-INF module/zygisk
 
-      - name: Upload ZIP artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dirtysepbypass-bakasu-zygisk-next
-          path: dirtysepbypass-bakasu-zygisk-next.zip
-          if-no-files-found: error
-
       - name: Publish direct ZIP download
         if: github.event_name == 'push' && github.ref == 'refs/heads/bakasu-zygisk-next'
         uses: softprops/action-gh-release@v2
