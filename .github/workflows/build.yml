@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -42,9 +42,19 @@ jobs:
           install -m 0644 /tmp/ndk-libs/arm64-v8a/libdirtysepbypass.so module/zygisk/arm64-v8a.so
           zip -r9 dirtysepbypass-bakasu-zygisk-next.zip module/module.prop module/customize.sh module/META-INF module/zygisk
 
-      - name: Upload ZIP
+      - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
           name: dirtysepbypass-bakasu-zygisk-next
           path: dirtysepbypass-bakasu-zygisk-next.zip
           if-no-files-found: error
+
+      - name: Publish direct ZIP download
+        if: github.event_name == 'push' && github.ref == 'refs/heads/bakasu-zygisk-next'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: experimental-bakasu-zygisk-next-${{ github.run_number }}
+          name: Experimental BakaSU / Zygisk Next build ${{ github.run_number }}
+          prerelease: true
+          files: dirtysepbypass-bakasu-zygisk-next.zip
+          generate_release_notes: false
