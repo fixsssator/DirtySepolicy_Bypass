@@ -1,0 +1,50 @@
+name: Build experimental module
+
+on:
+  push:
+    branches:
+      - bakasu-zygisk-next
+  pull_request:
+    branches:
+      - bakasu-zygisk-next
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Android NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: sdkmanager "ndk;27.2.12479018"
+
+      - name: Build arm64 module
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.2.12479018
+        run: |
+          set -eux
+          mkdir -p module/zygisk
+          "$ANDROID_NDK_HOME/ndk-build" \
+            NDK_PROJECT_PATH=. \
+            APP_BUILD_SCRIPT=jni/Android.mk \
+            NDK_APPLICATION_MK=jni/Application.mk \
+            APP_ABI=arm64-v8a \
+            APP_PLATFORM=android-23 \
+            NDK_OUT=/tmp/ndk-out \
+            NDK_LIBS_OUT=/tmp/ndk-libs
+          install -m 0644 /tmp/ndk-libs/arm64-v8a/libdirtysepbypass.so module/zygisk/arm64-v8a.so
+          zip -r9 dirtysepbypass-bakasu-zygisk-next.zip module/module.prop module/customize.sh module/META-INF module/zygisk
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: dirtysepbypass-bakasu-zygisk-next
+          path: dirtysepbypass-bakasu-zygisk-next.zip
+          if-no-files-found: error
